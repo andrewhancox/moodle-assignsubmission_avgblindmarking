@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/assign/submission/avgblindmarking/db" VERSION="20120423" COMMENT="XMLDB file for Moodle mod/assign/submission/avgblindmarking"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
+>
+    <TABLES>
+        <TABLE NAME="assignsubmission_blindsub" COMMENT="Info about avgblindmarking submission">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="submissionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="originalsubmissionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="graderallocid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="The unique id for this avgblindmarking submission."/>
+                <KEY NAME="submissionid" TYPE="foreign" FIELDS="submissionid" REFTABLE="assign_submission" REFFIELDS="id"
+                     COMMENT="The submission this online text submission relates to."/>
+                <KEY NAME="originalsubmissionid" TYPE="foreign" FIELDS="originalsubmissionid" REFTABLE="assign_submission" REFFIELDS="id"
+                     COMMENT="The submission this online text submission relates to."/>
+                <KEY NAME="graderallocid" TYPE="foreign" FIELDS="graderallocid" REFTABLE="assignsubmission_graderalloc" REFFIELDS="id"
+                     COMMENT="The submission this online text submission relates to."/>
+            </KEYS>
+        </TABLE>
+        <TABLE NAME="assignsubmission_graderalloc" COMMENT="Info about avgblindmarking submission">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="assignid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="learneruserid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="graderuserid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="The unique id for this avgblindmarking submission."/>
+                <KEY NAME="assignid" TYPE="foreign" FIELDS="assignment" REFTABLE="assign" REFFIELDS="id"
+                     COMMENT="The submission this online text submission relates to."/>
+                <KEY NAME="learneruserid" TYPE="foreign" FIELDS="learneruserid" REFTABLE="user" REFFIELDS="id"
+                     COMMENT="The submission this online text submission relates to."/>
+                <KEY NAME="graderuserid" TYPE="foreign" FIELDS="graderuserid" REFTABLE="user" REFFIELDS="id"
+                     COMMENT="The submission this online text submission relates to."/>
+            </KEYS>
+        </TABLE>
+    </TABLES>
+</XMLDB>
