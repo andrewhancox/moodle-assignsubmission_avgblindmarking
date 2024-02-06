@@ -15,19 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    assignsubmission_avgblindmarking
+ * @package local_vouchers
  * @author Andrew Hancox <andrewdchancox@googlemail.com>
  * @author Open Source Learning <enquiries@opensourcelearning.co.uk>
  * @link https://opensourcelearning.co.uk
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright 2024, Andrew Hancox
+ * @copyright 2021, Andrew Hancox
  */
 
 defined('MOODLE_INTERNAL') || die();
 
+// List of observers.
 $observers = [
     [
-        'eventname' => '\mod_assign\event\assessable_submitted',
-        'callback' => '\enrol_usercreated\eventhandlers::assessable_submitted',
+        'eventname' => '\mod_assign\event\workflow_state_updated',
+        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::workflow_state_updated',
+        'priority' => 99999,
+    ],
+    [
+        'eventname' => '\mod_assign\event\submission_graded',
+        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::submission_graded',
+        'priority' => 99999,
     ],
 ];

@@ -59,7 +59,13 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
         if ($action == 'manageavgblindsubmissions') {
             require_capability('assignsubmission/avgblindmarking:manageavgblindsubmissions', $this->assignment->get_context());
             $avgblindsubmission = new avgblindsubmissioncontroller($this->assignment);
-            return $avgblindsubmission->viewmanageavgblindsubmissions();
+            return $avgblindsubmission->list();
+        }
+
+        if ($action == 'viewavgblindsubmission') {
+            require_capability('assignsubmission/avgblindmarking:manageavgblindsubmissions', $this->assignment->get_context());
+            $avgblindsubmission = new avgblindsubmissioncontroller($this->assignment);
+            return $avgblindsubmission->view();
         }
 
         return parent::view_page($action);

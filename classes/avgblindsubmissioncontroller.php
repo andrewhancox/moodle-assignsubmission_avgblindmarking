@@ -34,29 +34,7 @@ class avgblindsubmissioncontroller extends basecontroller {
                 get_string('manageavgblindsubmissions', 'assignsubmission_avgblindmarking'), 'get');
     }
 
-    public function viewdelete() {
-        $avgblindsubmissionid = required_param('avgblindsubmissionid', PARAM_INT);
-
-        $mform = new avgblindsubmissiondeleteform($this->getinternallink('deleteavgblindsubmission'));
-
-        if ($mform->is_cancelled()) {
-            redirect($this->getinternallink('manageavgblindsubmissions'));
-        } else if ($data = $mform->get_data()) {
-            $avgblindsubmission = avgblindsubmission::get_record(['id' => $data->avgblindsubmissionid]);
-            $avgblindsubmission->delete_avgblindsubmission_submission($this->assignment);
-            redirect($this->getinternallink('manageavgblindsubmissions'));
-        } else {
-            $mform->set_data(['avgblindsubmissionid' => $avgblindsubmissionid]);
-        }
-
-        $o = $this->getheader(get_string('deleteavgblindsubmission', 'assignsubmission_avgblindmarking'));
-        $o .= $this->renderer->render(new \assign_form('editsubmissionform', $mform));
-        $o .= $this->getfooter();
-
-        return $o;
-    }
-
-    public function viewmanageavgblindsubmissions() {
+    public function list() {
         global $OUTPUT;
 
         $sort = optional_param('tsort', 'lastname, firstname', PARAM_ALPHA);
@@ -80,21 +58,12 @@ class avgblindsubmissioncontroller extends basecontroller {
     public function view() {
         global $PAGE, $DB;
 
-        $avgblindsubmissionid = optional_param('avgblindsubmissionid', false, PARAM_INT);
-        if ($avgblindsubmissionid) {
-            $avgblindsubmission = avgblindsubmission::get_record(['id' => $avgblindsubmissionid]);
-            $submission = $DB->get_record('assign_submission', ['id' => $avgblindsubmission->get('submissionid'), 'latest' => 1]);
+        $graderallocid = required_param('graderallocid', PARAM_INT);
+        $originalsubmissionid = required_param('originalsubmissionid', PARAM_INT);
 
-            $data = new \stdClass();
-            $data->userid = $submission->userid;
-        } else {
-            $submission = null;
-
-            $data = new \stdClass();
-            $data->userid = avgblindsubmission::getnextuserid($this->assignment);
-        }
-        $url = $this->getinternallink('addavgblindsubmission');
-        $url->param('avgblindsubmissionid', $avgblindsubmissionid);
+        $url = $this->getinternallink('viewavgblindsubmissions');
+        $url->param('graderallocid', $graderallocid);
+        $url->param('originalsubmissionid', $originalsubmissionid);
         $PAGE->set_url($url);
 
         $mform = new avgblindsubmissionform($url, [$this->assignment, $data, $submission]);
