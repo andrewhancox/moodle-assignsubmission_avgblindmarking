@@ -15,23 +15,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    assignsubmission_avgblindmarking
+ * @package local_commerce
  * @author Andrew Hancox <andrewdchancox@googlemail.com>
  * @author Open Source Learning <enquiries@opensourcelearning.co.uk>
  * @link https://opensourcelearning.co.uk
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright 2024, Andrew Hancox
+ * @copyright 2021, Andrew Hancox
  */
 
-defined('MOODLE_INTERNAL') || die();
+use local_commerce\benefit;
+use local_commerce\product;
 
-use assignsubmission_avgblindmarking\avgblindsubmissioncontroller;
+require_once(__DIR__ . '../../../../../config.php');
 
-require_once($CFG->dirroot . '/comment/lib.php');
-require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
 
-class assign_submission_avgblindmarking extends assign_submission_plugin {
-    public function get_name() {
-        return get_string('pluginname', 'assignsubmission_avgblindmarking');
-    }
-}
+$PAGE->set_context(context_system::instance());
+$PAGE->set_url(new moodle_url('/mod/assign/submission/avgblindmarking/sketchviewgrader.php'));
+
+
+echo $OUTPUT->header();
+
+$form = new \assignsubmission_avgblindmarking\viewgradersform();
+$form->display();
+
+echo $OUTPUT->footer();
