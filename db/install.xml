@@ -30,7 +30,7 @@
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="The unique id for this avgblindmarking submission."/>
-                <KEY NAME="assignid" TYPE="foreign" FIELDS="assignment" REFTABLE="assign" REFFIELDS="id"
+                <KEY NAME="assignid" TYPE="foreign" FIELDS="assignid" REFTABLE="assign" REFFIELDS="id"
                      COMMENT="The submission this online text submission relates to."/>
                 <KEY NAME="learneruserid" TYPE="foreign" FIELDS="learneruserid" REFTABLE="user" REFFIELDS="id"
                      COMMENT="The submission this online text submission relates to."/>

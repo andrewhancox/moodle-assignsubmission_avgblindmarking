@@ -57,7 +57,7 @@ class eventhandlers {
         // If we're not blind marking then we need to catch this after the \assign::gradebook_item_update function has run
         // by catching the submission_graded event.
         if ($assign->is_blind_marking()) {
-            self::disconnect_latest_grade($event->relateduserid, $assign, $finalmarkersubmitting);
+            self::disconnect_latest_grade($event->relateduserid, $event->userid, $assign, $finalmarkersubmitting);
         }
 
         $tran->allow_commit();
@@ -70,29 +70,34 @@ class eventhandlers {
 
         $assign_user_flag = $DB->get_record('assign_user_flags', ['userid' => $event->relateduserid, 'assignment' => $assign->get_instance()->id]);
 
-        $finalmarkersubmitted = $assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW;
+        $finalmarkersubmitted = $assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW && empty($assign_user_flag->allocatedmarker);
 
         if (
-            (!$assign->is_blind_marking()&&$assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED)
+            (!$assign->is_blind_marking() && $assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED)
             ||
             $finalmarkersubmitted
         ) {
-            self::disconnect_latest_grade($event->relateduserid, $assign, $finalmarkersubmitted);
+            self::disconnect_latest_grade($event->relateduserid, $event->userid, $assign, $finalmarkersubmitted);
         }
     }
 
-    private static function disconnect_latest_grade($userid, \assign $assign, $createfinalgrade) {
+    private static function disconnect_latest_grade($learneruserid, $graderuserid, \assign $assign, $createfinalgrade) {
         global $DB;
 
-        $assigngrade = $DB->get_record('assign_grades', ['userid' => $userid, 'assignment' => $assign->get_instance()->id]);
+        $assigngrade = $DB->get_record('assign_grades', ['userid' => $learneruserid, 'assignment' => $assign->get_instance()->id, 'grader' => $graderuserid]);
+
+        if (empty($assigngrade)) {
+            return;
+        }
+
         $assigngrade->userid = -1;
         $assigngrade->attemptnumber = $DB->get_field('assign_grades', 'max(attemptnumber)', []) + 1;
         $DB->update_record('assign_grades', $assigngrade);
 
-        //$DB->insert_record('assignsubmission_ass_grade', ['assigngradeid' => $assigngrade->id, 'userid' => $userid]);
+        $DB->insert_record('assignsubmission_ass_grade', ['assigngradeid' => $assigngrade->id, 'userid' => $learneruserid]);
 
         if ($createfinalgrade) {
-            $grade = $assign->get_user_grade($userid, true);
+            $grade = $assign->get_user_grade($learneruserid, true);
             $grade->grade = '25.00000';
             $assign->update_grade($grade);
         }
