@@ -25,63 +25,98 @@
 
 namespace assignsubmission_avgblindmarking;
 
+use stdClass;
+
+require_once("$CFG->dirroot/mod/assign/locallib.php");
+
 class eventhandlers {
-    public static function workflow_state_updated(\mod_assign\event\workflow_state_updated $event) {
-        global $DB, $CFG;
+    public static function assessable_submitted(\mod_assign\event\assessable_submitted $event) {
+        global $DB;
 
-        require_once("$CFG->dirroot/mod/assign/locallib.php");
+        $relateduserid = $DB->get_field('assign_submission', 'userid', ['id' => $event->objectid]);
 
-        $assign = $event->get_assign();
+        self::updateworkflowstateandmarker($event, $relateduserid);
+    }
+    public static function submission_status_updated(\mod_assign\event\submission_status_updated $event) {
 
-        $assign_user_flag = $DB->get_record('assign_user_flags', ['userid' => $event->relateduserid, 'assignment' => $assign->get_instance()->id]);
-
-        if ($assign_user_flag->workflowstate !== ASSIGN_MARKING_WORKFLOW_STATE_READYFORREVIEW) {
+        if ($event->other['newstatus'] !== ASSIGN_SUBMISSION_STATUS_SUBMITTED) {
             return;
         }
 
-        $nextmarker = self::get_next_marker($event->relateduserid, $assign->get_instance()->id);
+        self::updateworkflowstateandmarker($event);
+    }
 
-        $finalmarkersubmitting = empty($nextmarker);
-        if ($finalmarkersubmitting) {
-            $assign_user_flag->allocatedmarker = 0;
-            $assign_user_flag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW;
-        } else {
-            $assign_user_flag->allocatedmarker = $nextmarker;
-            $assign_user_flag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED;
-        }
-
-        $tran = $DB->start_delegated_transaction();
-
-        $DB->update_record('assign_user_flags', $assign_user_flag);
-
-        // If we're not blind marking then we need to catch this after the \assign::gradebook_item_update function has run
-        // by catching the submission_graded event.
-        if ($assign->is_blind_marking()) {
-            self::disconnect_latest_grade($event->relateduserid, $event->userid, $assign, $finalmarkersubmitting);
-        }
-
-        $tran->allow_commit();
+    public static function workflow_state_updated(\mod_assign\event\workflow_state_updated $event) {
+        self::updateworkflowstateandmarker($event);
     }
 
     public static function submission_graded(\mod_assign\event\submission_graded $event) {
+        self::updateworkflowstateandmarker($event);
+    }
+
+    private static function updateworkflowstateandmarker(\mod_assign\event\base $event, $relateduserid = null) {
         global $DB;
+
+        $relateduserid = $relateduserid ?? $event->relateduserid;
 
         $assign = $event->get_assign();
 
-        $assign_user_flag = $DB->get_record('assign_user_flags', ['userid' => $event->relateduserid, 'assignment' => $assign->get_instance()->id]);
+        $assign_user_flag = $DB->get_record('assign_user_flags', ['userid' => $relateduserid, 'assignment' => $assign->get_instance()->id]);
 
-        $finalmarkersubmitted = $assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW && empty($assign_user_flag->allocatedmarker);
-
-        if (
-            (!$assign->is_blind_marking() && $assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED)
-            ||
-            $finalmarkersubmitted
-        ) {
-            self::disconnect_latest_grade($event->relateduserid, $event->userid, $assign, $finalmarkersubmitted);
+        if (empty($assign_user_flag)) {
+            $assign_user_flag = new stdClass();
+            $assign_user_flag->userid = $relateduserid;
+            $assign_user_flag->assignment = $assign->get_instance()->id;
+            $assign_user_flag->workflowstate = '';
+            $assign_user_flag->id = $DB->insert_record('assign_user_flags', $assign_user_flag);
         }
+
+        $submission = $assign->get_user_submission($relateduserid, false);
+        $grade = $assign->get_user_grade($relateduserid, false);
+
+        if ($submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED && empty($assign_user_flag->workflowstate)) {
+            $assign_user_flag->allocatedmarker = self::get_next_marker($relateduserid, $assign);
+            $assign_user_flag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED;
+            $DB->update_record('assign_user_flags', $assign_user_flag);
+
+            return true;
+        }
+
+
+        if (empty($grade) || $grade->grade == -1) {
+            return true;
+        }
+
+        if (empty($assign_user_flag->workflowstate) || $assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_READYFORREVIEW) {
+            if ($assign_user_flag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_READYFORREVIEW) {
+                self::disconnect_latest_grade($relateduserid, $event->userid, $assign);
+            }
+
+            $nextmarker = self::get_next_marker($relateduserid, $assign);
+            $finalmarkersubmitting = empty($nextmarker);
+
+            if ($finalmarkersubmitting) {
+                $grade = $assign->get_user_grade($relateduserid, true);
+                $assign_user_flag->allocatedmarker = 0;
+                $assign_user_flag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW;
+                $DB->update_record('assign_user_flags', $assign_user_flag);
+
+                $grade->grade = $DB->get_field_sql('select AVG(ag.grade) from {assign_grades} ag
+                                        inner join {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
+                                        where ag.assignment = :assignid and assg.userid = :userid',
+                    ['assignid' => $assign->get_instance()->id, 'userid' => $relateduserid]);
+                $assign->update_grade($grade);
+            } else {
+                $assign_user_flag->allocatedmarker = $nextmarker;
+                $assign_user_flag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED;
+                $DB->update_record('assign_user_flags', $assign_user_flag);
+            }
+        }
+
+        return true;
     }
 
-    private static function disconnect_latest_grade($learneruserid, $graderuserid, \assign $assign, $createfinalgrade) {
+    private static function disconnect_latest_grade($learneruserid, $graderuserid, \assign $assign) {
         global $DB;
 
         $assigngrade = $DB->get_record('assign_grades', ['userid' => $learneruserid, 'assignment' => $assign->get_instance()->id, 'grader' => $graderuserid]);
@@ -95,16 +130,38 @@ class eventhandlers {
         $DB->update_record('assign_grades', $assigngrade);
 
         $DB->insert_record('assignsubmission_ass_grade', ['assigngradeid' => $assigngrade->id, 'userid' => $learneruserid]);
-
-        if ($createfinalgrade) {
-            $grade = $assign->get_user_grade($learneruserid, true);
-            $grade->grade = '25.00000';
-            $assign->update_grade($grade);
-        }
     }
 
-    private static function get_next_marker($userid, $assignmentid) {
+    private static function get_next_marker($learneruserid, \assign $assign) {
+        $teacherroles = array_keys(get_archetype_roles('editingteacher') + get_archetype_roles('teacher'));
+
+        $grades = self::get_assign_grades($assign->get_instance()->id, $learneruserid);
+
+        $graders = [];
+        foreach ($teacherroles as $roleid) {
+            $graders = array_merge($graders, array_keys(get_role_users($roleid, $assign->get_course_context())));
+        }
+
+        $graded = [];
+        foreach ($grades as $grade) {
+            $graded[] = $grade->grader;
+        }
+
+        $tograde = array_diff($graders, $graded);
+
+        if (!empty($tograde)) {
+            return reset($tograde);
+        }
+
         return null;
-        return 668;
+    }
+
+    private static function get_assign_grades($assignid, $learneruserid) {
+        global $DB;
+
+        return $DB->get_records_sql('select ag.* from {assign_grades} ag
+                                        inner join {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
+                                        where ag.assignment = :assignid and assg.userid = :userid',
+            ['assignid' => $assignid, 'userid' => $learneruserid]);
     }
 }

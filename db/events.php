@@ -37,4 +37,14 @@ $observers = [
         'callback' => '\assignsubmission_avgblindmarking\eventhandlers::submission_graded',
         'priority' => 99999,
     ],
+    [
+        'eventname' => '\mod_assign\event\submission_status_updated',
+        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::submission_status_updated',
+        'priority' => 99999,
+    ],
+    [
+        'eventname' => '\mod_assign\event\assessable_submitted',
+        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::assessable_submitted',
+        'priority' => 99999,
+    ],
 ];
