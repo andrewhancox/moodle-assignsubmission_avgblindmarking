@@ -67,11 +67,15 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
 
     public function view_page($action) {
         global $USER;
+        require_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context());
+        $manageblindgradescontroller = new manageblindgradescontroller($this->assignment);
 
         if ($action == 'manageblindgrades') {
-            require_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context());
-            $manageblindgradescontroller = new manageblindgradescontroller($this->assignment);
             return $manageblindgradescontroller->manageblindgrades();
+        }
+
+        if ($action == 'viewblindgrade') {
+            return $manageblindgradescontroller->viewblindgrade();
         }
     }
 }

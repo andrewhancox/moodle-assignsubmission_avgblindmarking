@@ -7,8 +7,8 @@ use MoodleQuickForm;
 use stdClass;
 
 class extendedassign extends assign {
-    public static function get_from_cmid($cmid): extendedassign {
-        list($course, $cm) = get_course_and_cm_from_cmid($cmid);
+    public static function get_from_instanceid(int $instanceid): extendedassign {
+        list($course, $cm) = get_course_and_cm_from_instance($instanceid, 'assign');
         return new self($cm->context, $cm, $course);
     }
 
@@ -23,16 +23,5 @@ class extendedassign extends assign {
      */
     public function get_grading_instance_pub($userid, $grade, $gradingdisabled) {
         return $this->get_grading_instance($userid, $grade, $gradingdisabled);
-    } /**
- * Add elements in grading plugin form.
- *
- * @param mixed $grade stdClass|null
- * @param MoodleQuickForm $mform
- * @param stdClass $data
- * @param int $userid - The userid we are grading
- * @return void
- */
-    public function add_plugin_grade_elements_pub($grade, MoodleQuickForm $mform, stdClass $data, $userid) {
-        return $this->add_plugin_grade_elements($grade, $mform, $data, $userid);
     }
 }

@@ -34,7 +34,6 @@ abstract class basecontroller {
      */
     protected $assignment;
     protected $renderer;
-    protected $assignmentsettings;
 
     public function __construct(\assign $assignment) {
         $this->assignment = $assignment;
@@ -53,6 +52,10 @@ abstract class basecontroller {
 
     protected function getfooter() {
         return $this->renderer->render_footer();
+    }
+
+    public function get_assign() :\assign{
+        return $this->assignment;
     }
 
     public function getinternallink($pluginaction, $extraparams = []) {
