@@ -26,3 +26,4 @@
 $string['pluginname'] = 'Average blind marking';
 $string['enabled'] = 'Enabled';
 $string['enabled_help'] = 'Average blind marking enabled';
+$string['manageblindgrades'] = 'Manage blind grades';

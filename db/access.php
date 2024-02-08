@@ -16,18 +16,21 @@
 
 /**
  * @package    assignsubmission_avgblindmarking
- * @author Andrew Hancox <andrewdchancox@googlemail.com>
- * @author Open Source Learning <enquiries@opensourcelearning.co.uk>
- * @link https://opensourcelearning.co.uk
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright 2024, Andrew Hancox
+ * @copyright 2020 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
+ * @copyright 2020 Ian Jones at Loughborough University <I.Jones@lboro.ac.uk>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2019111820;
-$plugin->requires  = 2018120300;
-$plugin->component = 'assignsubmission_avgblindmarking';
-$plugin->cron      = 0;
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = '1.0 for Moodle 3.8+';
+$capabilities = [
+    'assignsubmission/avgblindmarking:managegraders' => [
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'teacher' => CAP_ALLOW,
+        ]
+    ],
+];
+

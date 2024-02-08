@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 use assignsubmission_avgblindmarking\avgblindsubmissioncontroller;
+use assignsubmission_avgblindmarking\manageblindgradescontroller;
 
 require_once($CFG->dirroot . '/comment/lib.php');
 require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
@@ -43,5 +44,34 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
 
         $DB->delete_records_subquery('assignsubmission_ass_grade', 'assigngradeid', 'id',
             'SELECT id from {assign_grades} WHERE assignment = :assignid', ['assignid' => $this->assignment->get_instance()->id]);
+    }
+
+    public function view_header() {
+        global $OUTPUT;
+
+        $o = '';
+
+        $o .= $OUTPUT->container_start('manageblindgrades');
+        $o .= $OUTPUT->box_start('boxaligncenter manageblindgradesbuttons');
+
+        if (has_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context())) {
+            $manageblindgradescontroller = new manageblindgradescontroller($this->assignment);
+            $o .= $manageblindgradescontroller->summary();
+        }
+
+        $o .= $OUTPUT->box_end();
+        $o .= $OUTPUT->container_end();
+
+        return $o;
+    }
+
+    public function view_page($action) {
+        global $USER;
+
+        if ($action == 'manageblindgrades') {
+            require_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context());
+            $manageblindgradescontroller = new manageblindgradescontroller($this->assignment);
+            return $manageblindgradescontroller->manageblindgrades();
+        }
     }
 }
