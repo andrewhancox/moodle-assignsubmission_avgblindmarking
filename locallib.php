@@ -34,4 +34,14 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
     public function get_name() {
         return get_string('pluginname', 'assignsubmission_avgblindmarking');
     }
+
+    public function delete_instance() {
+        global $DB;
+
+        $DB->delete_records('assignsubmission_graderalloc',
+            ['assignid' => $this->assignment->get_instance()->id]);
+
+        $DB->delete_records_subquery('assignsubmission_ass_grade', 'assigngradeid', 'id',
+            'SELECT id from {assign_grades} WHERE assignment = :assignid', ['assignid' => $this->assignment->get_instance()->id]);
+    }
 }
