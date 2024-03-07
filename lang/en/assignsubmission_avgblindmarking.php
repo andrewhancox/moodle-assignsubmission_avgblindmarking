@@ -43,3 +43,5 @@ $string['allocatedgraders'] = 'Allocated graders';
 $string['timecreated'] = 'Time created';
 $string['viewblindgrade'] = 'View blind grade';
 $string['viewblindgrades'] = 'View blind grades';
+$string['maxvarianceforautograde'] = 'Maximum variance for autograding (%)';
+$string['maxvarianceforautograde_help'] = 'The total difference between the highest and lowest mark must be below this percentage of the grade available for the assignment, if this is not the case then the grades will require manual review.';

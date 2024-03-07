@@ -97,11 +97,27 @@ class eventhandlers {
                 $assignuserflag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW;
                 $DB->update_record('assign_user_flags', $assignuserflag);
 
-                $grade->grade = $DB->get_field_sql('select AVG(ag.grade) from {assign_grades} ag
+                $gradeinfo = $DB->get_record_sql('select AVG(ag.grade) as avg,  MAX(ag.grade) - MIN(ag.grade) as variance from {assign_grades} ag
                                         inner join {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
                                         where ag.assignment = :assignid and assg.userid = :userid',
                     ['assignid' => $assign->get_instance()->id, 'userid' => $relateduserid]);
+
+                $publishable = true;
+
+                $maxvariance =  $assign->get_submission_plugin_by_type('avgblindmarking')->get_config('maxvarianceforautograde');
+                if (!empty($maxvariance)) {
+                    $absolutevariance = ($assign->get_instance()->grade / 100) * $maxvariance;
+                    if ($gradeinfo->variance > $absolutevariance) {
+                        $publishable = false;
+                    }
+                }
+                $grade->grade = $gradeinfo->avg;
                 $assign->update_grade($grade);
+
+                if ($publishable) {
+                    $assignuserflag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_READYFORRELEASE;
+                    $DB->update_record('assign_user_flags', $assignuserflag);
+                }
             } else {
                 $assignuserflag->allocatedmarker = $nextmarker;
                 $assignuserflag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED;

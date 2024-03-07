@@ -80,4 +80,33 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
             }
         }
     }
+
+    /**
+     * @param MoodleQuickForm $mform The form to add the elements to
+     * @return void
+     */
+    public function get_settings(MoodleQuickForm $mform): void {
+        if ($this->assignment->has_instance()) {
+            $maxvarianceforautograde = $this->get_config('maxvarianceforautograde');
+        } else {
+            $maxvarianceforautograde = 20;
+        }
+
+        $name = get_string('maxvarianceforautograde', 'assignsubmission_avgblindmarking');
+        $mform->addElement('text', 'assignsubmission_avgblindmarking_maxvarianceforautograde', $name);
+        $mform->setType('assignsubmission_avgblindmarking_maxvarianceforautograde', PARAM_INT);
+        $mform->hideIf('assignsubmission_avgblindmarking_maxvarianceforautograde', 'assignsubmission_avgblindmarking_enabled', 'notchecked');
+        $mform->addHelpButton('assignsubmission_avgblindmarking_maxvarianceforautograde', 'maxvarianceforautograde', 'assignsubmission_avgblindmarking');
+        $mform->setDefault('assignsubmission_avgblindmarking_maxvarianceforautograde', $maxvarianceforautograde);
+    }
+
+    /**
+     * @param stdClass $formdata - the data submitted from the form
+     * @return bool - on error the subtype should call set_error and return false.
+     */
+    public function save_settings(stdClass $formdata): bool {
+        $this->set_config('maxvarianceforautograde', $formdata->assignsubmission_avgblindmarking_maxvarianceforautograde);
+
+        return true;
+    }
 }
