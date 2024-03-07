@@ -1,4 +1,24 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package    assignsubmission_avgblindmarking
+ * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace assignsubmission_avgblindmarking;
 
@@ -16,12 +36,10 @@ class viewblindgradeform extends moodleform {
         $grade = $DB->get_record('assign_grades', ['id' => $this->_customdata['assigngradeid']]);
         $learnerid = $DB->get_field('assignsubmission_ass_grade', 'userid', ['assigngradeid' => $this->_customdata['assigngradeid']]);
 
-
         $assign = \assignsubmission_avgblindmarking\extendedassign::get_from_instanceid($grade->assignment);
         $gradinginstance = $assign->get_grading_instance_pub($learnerid, $grade, true);
 
         $submission = $assign->get_user_submission($learnerid, false);
-
 
         $oput = '';
         foreach ($assign->get_submission_plugins() as $plugin) {
@@ -40,16 +58,12 @@ class viewblindgradeform extends moodleform {
                     $oput .= $assignrenderer->render($pluginsubmission);
                 }
 
-
                 $oput .= \html_writer::end_div();
 
             }
         }
 
         $mform->addElement('html', $oput);
-
-
-
 
         $mform->addElement('html', \html_writer::start_div('assignsubmission_avgblindmarking grade'));
         $mform->addElement('html', \html_writer::tag('h4', get_string('grade')));
@@ -59,11 +73,11 @@ class viewblindgradeform extends moodleform {
             $gradingelement = $mform->addElement('grading',
                 'advancedgrading',
                 get_string('gradenoun') . ':',
-                array('gradinginstance' => $gradinginstance));
+                ['gradinginstance' => $gradinginstance]);
 
             $gradingelement->freeze();
         } else {
-            $grademenu = array(-1 => get_string("nograde")) + make_grades_menu($assign->get_instance()->grade);
+            $grademenu = [-1 => get_string("nograde")] + make_grades_menu($assign->get_instance()->grade);
             if (count($grademenu) > 1) {
                 $gradingelement = $mform->addElement('select', 'grade', get_string('gradenoun') . ':', $grademenu);
 
@@ -78,9 +92,6 @@ class viewblindgradeform extends moodleform {
         }
 
         $mform->addElement('html', \html_writer::end_div());
-
-
-
 
         $oput = '';
         foreach ($assign->get_feedback_plugins() as $plugin) {

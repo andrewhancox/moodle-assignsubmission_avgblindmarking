@@ -15,17 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package assignsubmission_avgblindmarking
- * @author Andrew Hancox <andrewdchancox@googlemail.com>
- * @author Open Source Learning <enquiries@opensourcelearning.co.uk>
- * @link https://opensourcelearning.co.uk
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright 2021, Andrew Hancox
+ * @package    assignsubmission_avgblindmarking
+ * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace assignsubmission_avgblindmarking;
 
-use assign;
 use html_writer;
 use moodle_url;
 use table_sql;
@@ -83,7 +79,7 @@ class blindgradestable extends table_sql {
         $name = fullname($user);
 
         $profileurl = new moodle_url('/user/view.php',
-            array('id' => $row->learner, 'course' => $COURSE->id));
+            ['id' => $row->learner, 'course' => $COURSE->id]);
 
         return html_writer::link($profileurl, $name);
     }
@@ -97,7 +93,7 @@ class blindgradestable extends table_sql {
         $name = fullname($user);
 
         $profileurl = new moodle_url('/user/view.php',
-            array('id' => $row->grader, 'course' => $COURSE->id));
+            ['id' => $row->grader, 'course' => $COURSE->id]);
 
         return html_writer::link($profileurl, $name);
     }

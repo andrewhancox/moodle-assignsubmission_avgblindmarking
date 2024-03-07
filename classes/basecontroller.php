@@ -16,8 +16,7 @@
 
 /**
  * @package    assignsubmission_avgblindmarking
- * @copyright 2020 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
- * @copyright 2020 Ian Jones at Loughborough University <I.Jones@lboro.ac.uk>
+ * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -54,7 +53,7 @@ abstract class basecontroller {
         return $this->renderer->render_footer();
     }
 
-    public function get_assign() :\assign{
+    public function get_assign() :\assign {
         return $this->assignment;
     }
 
@@ -63,7 +62,7 @@ abstract class basecontroller {
                    'action'        => 'viewpluginpage',
                    'plugin'        => 'avgblindmarking',
                    'pluginsubtype' => 'assignsubmission',
-                   'pluginaction'  => $pluginaction
+                   'pluginaction'  => $pluginaction,
         ];
 
         $params += $extraparams;

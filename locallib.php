@@ -16,17 +16,15 @@
 
 /**
  * @package    assignsubmission_avgblindmarking
- * @author Andrew Hancox <andrewdchancox@googlemail.com>
- * @author Open Source Learning <enquiries@opensourcelearning.co.uk>
- * @link https://opensourcelearning.co.uk
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright 2024, Andrew Hancox
+ * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 use assignsubmission_avgblindmarking\avgblindsubmissioncontroller;
 use assignsubmission_avgblindmarking\manageblindgradescontroller;
+use assignsubmission_avgblindmarking\managegraderscontroller;
 
 require_once($CFG->dirroot . '/comment/lib.php');
 require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
@@ -57,6 +55,9 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
         if (has_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context())) {
             $manageblindgradescontroller = new manageblindgradescontroller($this->assignment);
             $o .= $manageblindgradescontroller->summary();
+
+            $managegraderscontroller = new managegraderscontroller($this->assignment);
+            $o .= $managegraderscontroller->summary();
         }
 
         $o .= $OUTPUT->box_end();
@@ -66,16 +67,17 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
     }
 
     public function view_page($action) {
-        global $USER;
         require_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context());
-        $manageblindgradescontroller = new manageblindgradescontroller($this->assignment);
 
-        if ($action == 'manageblindgrades') {
-            return $manageblindgradescontroller->manageblindgrades();
-        }
+        $controllers = [
+            new manageblindgradescontroller($this->assignment),
+            new managegraderscontroller($this->assignment),
+        ];
 
-        if ($action == 'viewblindgrade') {
-            return $manageblindgradescontroller->viewblindgrade();
+        foreach ($controllers as $controller) {
+            if (method_exists($controller, $action)) {
+                return $controller->$action();
+            }
         }
     }
 }

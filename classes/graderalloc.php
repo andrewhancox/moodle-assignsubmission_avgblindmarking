@@ -20,28 +20,24 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace assignsubmission_avgblindmarking;
 
-// List of observers.
-$observers = [
-    [
-        'eventname' => '\mod_assign\event\workflow_state_updated',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::workflow_state_updated',
-        'priority' => 99999,
-    ],
-    [
-        'eventname' => '\mod_assign\event\submission_graded',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::submission_graded',
-        'priority' => 99999,
-    ],
-    [
-        'eventname' => '\mod_assign\event\submission_status_updated',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::submission_status_updated',
-        'priority' => 99999,
-    ],
-    [
-        'eventname' => '\mod_assign\event\assessable_submitted',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::assessable_submitted',
-        'priority' => 99999,
-    ],
-];
+use core\persistent;
+
+class graderalloc extends persistent {
+    const TABLE = 'assignsubmission_graderalloc';
+
+    protected static function define_properties() {
+        return [
+            'assignid' => [
+                'type' => PARAM_INT,
+            ],
+            'learneruserid' => [
+                'type' => PARAM_INT,
+            ],
+            'graderuserid' => [
+                'type' => PARAM_INT,
+            ],
+        ];
+    }
+}

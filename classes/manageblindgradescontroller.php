@@ -16,8 +16,7 @@
 
 /**
  * @package    assignsubmission_avgblindmarking
- * @copyright 2020 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
- * @copyright 2020 Ian Jones at Loughborough University <I.Jones@lboro.ac.uk>
+ * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -63,8 +62,6 @@ class manageblindgradescontroller extends basecontroller {
         $gradinginstance = $assign->get_grading_instance_pub($learnerid, $grade, true);
         $submission = $assign->get_user_submission($learnerid, false);
 
-
-
         foreach ($assign->get_submission_plugins() as $plugin) {
             if ($plugin->is_enabled() && $plugin->is_visible() && !$plugin->is_empty($submission)) {
                 $oput .= \html_writer::start_div('assignsubmission_avgblindmarking submission ' . get_class($plugin));
@@ -81,14 +78,10 @@ class manageblindgradescontroller extends basecontroller {
                     $oput .= $assignrenderer->render($pluginsubmission);
                 }
 
-
                 $oput .= \html_writer::end_div();
 
             }
         }
-
-
-
 
         $oput .= \html_writer::start_div('assignsubmission_avgblindmarking grade');
         $oput .= \html_writer::tag('h4', get_string('grade', 'grades'));
@@ -110,10 +103,6 @@ class manageblindgradescontroller extends basecontroller {
 
             }
         }
-
-
-
-
 
         $oput .= $this->getfooter();
 

@@ -16,20 +16,30 @@
 
 /**
  * @package    assignsubmission_avgblindmarking
- * @author Andrew Hancox <andrewdchancox@googlemail.com>
- * @author Open Source Learning <enquiries@opensourcelearning.co.uk>
- * @link https://opensourcelearning.co.uk
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright 2024, Andrew Hancox
+ * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 $string['pluginname'] = 'Average blind marking';
 $string['enabled'] = 'Enabled';
 $string['enabled_help'] = 'Average blind marking enabled';
 $string['manageblindgrades'] = 'Manage blind grades';
+$string['managegraders'] = 'Manage graders';
+$string['importgraders'] = 'Import graders';
 
+
+$string['successfullyaddededitedxgraderallocations'] = 'Successfully added {$a} grader allocations.';
+$string['xerrorsencounteredduringimport'] = '{$a} problem(s) encountered during import.';
+
+$string['errors'] = 'Errors';
+$string['log'] = 'Log';
 $string['learner'] = 'Learner';
 $string['grader'] = 'Grader';
+$string['csvfile'] = 'CSV File';
+$string['creategraderalloc'] = 'Add grader allocation';
+$string['editgraderalloc'] = 'Edit grader allocation';
+$string['editgraderallocusername'] = 'Edit grader allocation for {$a}';
+$string['allocatedgraders'] = 'Allocated graders';
 $string['timecreated'] = 'Time created';
 $string['viewblindgrade'] = 'View blind grade';
 $string['viewblindgrades'] = 'View blind grades';

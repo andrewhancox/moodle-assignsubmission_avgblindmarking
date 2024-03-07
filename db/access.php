@@ -16,8 +16,7 @@
 
 /**
  * @package    assignsubmission_avgblindmarking
- * @copyright 2020 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
- * @copyright 2020 Ian Jones at Loughborough University <I.Jones@lboro.ac.uk>
+ * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,7 +29,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
             'teacher' => CAP_ALLOW,
-        ]
+        ],
     ],
 ];
 

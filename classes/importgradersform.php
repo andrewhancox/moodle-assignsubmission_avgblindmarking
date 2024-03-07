@@ -20,28 +20,24 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace assignsubmission_avgblindmarking;
 
-// List of observers.
-$observers = [
-    [
-        'eventname' => '\mod_assign\event\workflow_state_updated',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::workflow_state_updated',
-        'priority' => 99999,
-    ],
-    [
-        'eventname' => '\mod_assign\event\submission_graded',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::submission_graded',
-        'priority' => 99999,
-    ],
-    [
-        'eventname' => '\mod_assign\event\submission_status_updated',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::submission_status_updated',
-        'priority' => 99999,
-    ],
-    [
-        'eventname' => '\mod_assign\event\assessable_submitted',
-        'callback' => '\assignsubmission_avgblindmarking\eventhandlers::assessable_submitted',
-        'priority' => 99999,
-    ],
-];
+use core_text;
+use moodleform;
+
+class importgradersform extends moodleform {
+    function definition() {
+        $mform =& $this->_form;
+
+        $mform->addElement('filepicker', 'csvfile', get_string('csvfile', 'assignsubmission_avgblindmarking'), null, ['accepted_types' => ['.csv']]);
+        $mform->addRule('csvfile', null, 'required', null, 'client');
+
+        $encodings = core_text::get_encodings();
+        $mform->addElement('select', 'encoding', get_string('encoding', 'grades'), $encodings);
+
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
+
+        $this->add_action_buttons();
+    }
+}
