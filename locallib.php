@@ -25,6 +25,7 @@ defined('MOODLE_INTERNAL') || die();
 use assignsubmission_avgblindmarking\avgblindsubmissioncontroller;
 use assignsubmission_avgblindmarking\manageblindgradescontroller;
 use assignsubmission_avgblindmarking\managegraderscontroller;
+use assignsubmission_avgblindmarking\managemyblindgradescontroller;
 
 require_once($CFG->dirroot . '/comment/lib.php');
 require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
@@ -34,7 +35,7 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
         return get_string('pluginname', 'assignsubmission_avgblindmarking');
     }
 
-    public function view_summary(stdClass $submissionorgrade, & $showviewlink) {
+    public function view_summary(stdClass $submissionorgrade, &$showviewlink) {
         global $DB;
         $assignuserflag = $DB->get_record('assign_user_flags', ['userid' => $submissionorgrade->userid, 'assignment' => $submissionorgrade->assignment]);
 
@@ -73,17 +74,27 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
     public function view_header() {
         global $OUTPUT;
 
-        $o = '';
+        $controllers = [];
 
+        if (has_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context())) {
+            $controllers[] = new manageblindgradescontroller($this->assignment);
+            $controllers[] = new managegraderscontroller($this->assignment);
+        }
+
+        if (has_capability('mod/assign:grade', $this->assignment->get_context())) {
+            $controllers[] = new managemyblindgradescontroller($this->assignment);
+        }
+
+        if (empty($controllers)) {
+            return '';
+        }
+
+        $o = '';
         $o .= $OUTPUT->container_start('manageblindgrades');
         $o .= $OUTPUT->box_start('boxaligncenter manageblindgradesbuttons');
 
-        if (has_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context())) {
-            $manageblindgradescontroller = new manageblindgradescontroller($this->assignment);
-            $o .= $manageblindgradescontroller->summary();
-
-            $managegraderscontroller = new managegraderscontroller($this->assignment);
-            $o .= $managegraderscontroller->summary();
+        foreach ($controllers as $controller) {
+            $o .= $controller->summary();
         }
 
         $o .= $OUTPUT->box_end();
@@ -93,12 +104,16 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
     }
 
     public function view_page($action) {
-        require_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context());
+        $controllers = [];
 
-        $controllers = [
-            new manageblindgradescontroller($this->assignment),
-            new managegraderscontroller($this->assignment),
-        ];
+        if (has_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context())) {
+            $controllers[] = new manageblindgradescontroller($this->assignment);
+            $controllers[] = new managegraderscontroller($this->assignment);
+        }
+
+        if (has_capability('mod/assign:grade', $this->assignment->get_context())) {
+            $controllers[] = new managemyblindgradescontroller($this->assignment);
+        }
 
         foreach ($controllers as $controller) {
             if (method_exists($controller, $action)) {

@@ -36,7 +36,7 @@ class blindgradestable extends table_sql {
     protected $filterparams;
     protected $assignment;
 
-    public function __construct(basecontroller $controller, $sortcolumn, $learnerid) {
+    public function __construct(basecontroller $controller, $sortcolumn, $learnerid, $graderid = null) {
         parent::__construct('manageproduct_table');
 
         $this->controller = $controller;
@@ -45,14 +45,21 @@ class blindgradestable extends table_sql {
         $wheres = ['ag.assignment = :assignmentid'];
         $params = ['assignmentid' => $this->assignment->get_instance()->id];
 
-        $columns = ['grader', 'timecreated', 'grade', 'actions'];
+        $columns = ['timecreated', 'grade', 'actions'];
         $headers = [
-            get_string('grader', 'assignsubmission_avgblindmarking'),
             get_string('timecreated', 'assignsubmission_avgblindmarking'),
             get_string('blindgrade', 'assignsubmission_avgblindmarking'),
             get_string('actions'),
             '',
         ];
+
+        if (!empty($graderid)) {
+            $wheres[] = 'grdr.id = :graderid';
+            $params['graderid'] = $graderid;
+        } else {
+            array_unshift($headers, get_string('grader', 'assignsubmission_avgblindmarking'));
+            array_unshift($columns, 'grader');
+        }
 
         if (!empty($learnerid)) {
             $wheres[] = 'lrnr.id = :learnerid';

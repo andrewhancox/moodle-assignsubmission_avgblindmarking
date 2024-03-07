@@ -22,23 +22,32 @@
 
 namespace assignsubmission_avgblindmarking;
 
-use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
-
 defined('MOODLE_INTERNAL') || die();
 
-class manageblindgradescontroller extends manageblindgradescontrollerbase {
+class managemyblindgradescontroller extends manageblindgradescontrollerbase {
     public function summary() {
         global $OUTPUT;
 
-        return $OUTPUT->single_button($this->getinternallink('manageblindgrades'),
-                get_string('manageblindgrades', 'assignsubmission_avgblindmarking'), 'get');
+        return $OUTPUT->single_button($this->getinternallink('managemyblindgrades'),
+                get_string('managemyblindgrades', 'assignsubmission_avgblindmarking'), 'get');
     }
 
-    public function manageblindgrades() {
-        return parent::renderblindgradestable();
+    public function managemyblindgrades() {
+        global $USER;
+
+        return parent::renderblindgradestable($USER->id);
     }
 
     public function viewblindgrade() {
+        global $USER, $DB;
+
+        $assigngradeid = required_param('assigngradeid', PARAM_INT);
+        $grade = $DB->get_record('assign_grades', ['id' => $assigngradeid]);
+
+        if ($grade->grader <> $USER->id) {
+            require_capability('assignsubmission/avgblindmarking:managegraders', $this->assignment->get_context());
+        }
+
         return parent::renderblindgrade();
     }
 }
