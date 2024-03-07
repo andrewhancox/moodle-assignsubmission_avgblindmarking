@@ -33,17 +33,35 @@ class manageblindgradescontroller extends basecontroller {
     }
 
     public function manageblindgrades() {
+        global $OUTPUT;
 
         $sort = optional_param('tsort', 'lastname, firstname', PARAM_ALPHA);
-        $table = new blindgradestable($this, $sort);
-        $table->define_baseurl($this->getinternallink('managecomparisoncomments'));
+        $learnerid = optional_param('learnerid', 0, PARAM_INT);
 
-        $o = $this->getheader(get_string('viewblindgrades', 'assignsubmission_avgblindmarking'));
+        $table = new blindgradestable($this, $sort, $learnerid);
+        $table->define_baseurl($this->getinternallink('managecomparisoncomments', ['learnerid' => $learnerid]));
+
+        if (empty($learnerid)) {
+            $o = $this->getheader(get_string('viewblindgrades', 'assignsubmission_avgblindmarking'));
+        } else {
+            $o = $this->getheader(get_string('viewblindgradesforuser', 'assignsubmission_avgblindmarking', fullname(\core_user::get_user($learnerid))));
+        }
 
         ob_start();
         $table->out(25, false);
         $o .= ob_get_contents();
         ob_end_clean();
+
+        if (!empty($learnerid)) {
+            $o .= $OUTPUT->single_button(
+                new \moodle_url('/mod/assign/view.php', [
+                    'id' => $this->get_assign()->get_course_module()->id,
+                    'userid' => $learnerid,
+                    'action' => 'grader',
+                    'rownum' => 0
+                ]),
+                get_string('gradeverb'), 'get');
+        }
 
         $o .= $this->getfooter();
 

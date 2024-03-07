@@ -34,6 +34,32 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
         return get_string('pluginname', 'assignsubmission_avgblindmarking');
     }
 
+    public function view_summary(stdClass $submissionorgrade, & $showviewlink) {
+        global $DB;
+        $assignuserflag = $DB->get_record('assign_user_flags', ['userid' => $submissionorgrade->userid, 'assignment' => $submissionorgrade->assignment]);
+
+        if ($assignuserflag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW) {
+            $controller = new manageblindgradescontroller($this->assignment);
+            return html_writer::link(
+                $controller->getinternallink('manageblindgrades', ['learnerid' => $submissionorgrade->userid]),
+                get_string("outsidevariancerequiresreview", 'assignsubmission_avgblindmarking'),
+                ['class' => 'btn btn-primary']
+            );
+        } else if (in_array($assignuserflag->workflowstate, [ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED, ASSIGN_MARKING_WORKFLOW_STATE_INMARKING, ASSIGN_MARKING_WORKFLOW_STATE_READYFORREVIEW])) {
+            $submittedgrades = $DB->count_records_sql('select count(ag.id)
+                                        from {assign_grades} ag
+                                        INNER JOIN {assignsubmission_ass_grade} bg on bg.assigngradeid = ag.id
+                                        INNER JOIN {assignsubmission_graderalloc} ga on ag.grader = ga.graderuserid and bg.userid = ga.learneruserid and ga.assignid = ag.assignment
+                                        WHERE bg.userid = :userid AND ag.assignment = :assignmentid',
+                ['userid' => $submissionorgrade->userid, 'assignmentid' => $submissionorgrade->assignment]);
+            $requiredgrades = \assignsubmission_avgblindmarking\graderalloc::count_records(['learneruserid' => $submissionorgrade->userid]);
+
+            return get_string('requiredvsubmitted', 'assignsubmission_avgblindmarking', (object)['required' => $requiredgrades, 'submitted' => $submittedgrades]);
+        }
+
+        return '';
+    }
+
     public function delete_instance() {
         global $DB;
 

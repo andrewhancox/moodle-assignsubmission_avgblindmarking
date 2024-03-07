@@ -34,23 +34,36 @@ require_once($CFG->dirroot . '/user/profile/lib.php');
 
 class blindgradestable extends table_sql {
     protected $filterparams;
+    protected $assignment;
 
-    public function __construct(basecontroller $controller, $sortcolumn) {
+    public function __construct(basecontroller $controller, $sortcolumn, $learnerid) {
         parent::__construct('manageproduct_table');
 
         $this->controller = $controller;
+        $this->assignment = $controller->get_assign();
 
         $wheres = ['ag.assignment = :assignmentid'];
-        $params = ['assignmentid' => $controller->get_assign()->get_instance()->id];
+        $params = ['assignmentid' => $this->assignment->get_instance()->id];
 
-        $this->define_columns(['learner', 'grader', 'timecreated', 'actions']);
-        $this->define_headers([
-            get_string('learner', 'assignsubmission_avgblindmarking'),
+        $columns = ['grader', 'timecreated', 'grade', 'actions'];
+        $headers = [
             get_string('grader', 'assignsubmission_avgblindmarking'),
             get_string('timecreated', 'assignsubmission_avgblindmarking'),
+            get_string('blindgrade', 'assignsubmission_avgblindmarking'),
             get_string('actions'),
             '',
-        ]);
+        ];
+
+        if (!empty($learnerid)) {
+            $wheres[] = 'lrnr.id = :learnerid';
+            $params['learnerid'] = $learnerid;
+        } else {
+            array_unshift($headers, get_string('learner', 'assignsubmission_avgblindmarking'));
+            array_unshift($columns, 'learner');
+        }
+
+        $this->define_columns($columns);
+        $this->define_headers($headers);
         $this->collapsible(false);
         $this->sortable(true);
         $this->pageable(true);
@@ -60,7 +73,7 @@ class blindgradestable extends table_sql {
         $learnernamesql = \core_user\fields::for_name()->get_sql('lrnr', true, 'lrnr')->selects;
         $gradernamesql = \core_user\fields::for_name()->get_sql('grdr', true, 'grdr')->selects;
 
-        $this->set_sql("ag.id $learnernamesql $gradernamesql, ag.timecreated, ag.grader, bg.userid as learner",
+        $this->set_sql("ag.id $learnernamesql $gradernamesql, ag.timecreated, ag.grader, bg.userid as learner, ag.grade",
             '{assign_grades} ag
                     INNER JOIN {assignsubmission_ass_grade} bg on bg.assigngradeid = ag.id
                     INNER JOIN {user} lrnr on lrnr.id = bg.userid
@@ -104,6 +117,10 @@ class blindgradestable extends table_sql {
         } else {
             return userdate($row->timecreated);
         }
+    }
+
+    public function col_grade($row) {
+        return $this->assignment->display_grade($row->grade, false);
     }
 
     public function col_actions($row) {
