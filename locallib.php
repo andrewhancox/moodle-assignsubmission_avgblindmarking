@@ -22,7 +22,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-use assignsubmission_avgblindmarking\avgblindsubmissioncontroller;
 use assignsubmission_avgblindmarking\manageblindgradescontroller;
 use assignsubmission_avgblindmarking\managegraderscontroller;
 use assignsubmission_avgblindmarking\managemyblindgradescontroller;
@@ -33,6 +32,30 @@ require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
 class assign_submission_avgblindmarking extends assign_submission_plugin {
     public function get_name() {
         return get_string('pluginname', 'assignsubmission_avgblindmarking');
+    }
+
+    public function is_enabled() {
+        global $PAGE;
+
+        static $jsincluded = false;
+
+        if (
+            $PAGE->pagetype == 'mod-assign-grader'
+            &&
+            $PAGE->pagelayout == 'embedded'
+            &&
+            !$jsincluded
+        ) {
+            $refreshurl = new moodle_url('/mod/assign/view.php?id=300&rownum=0&action=grader', ['id' => $this->assignment->get_course_module()->id, 'action' => 'grader']);
+            $PAGE->requires->js_call_amd(
+                'assignsubmission_avgblindmarking/grading_panel_extensions',
+                'init',
+                [$refreshurl->out(false)]
+            );
+            $jsincluded = true;
+        }
+
+        return parent::is_enabled();
     }
 
     public function view_summary(stdClass $submissionorgrade, &$showviewlink) {

@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,16 +14,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    assignsubmission_avgblindmarking
  * @copyright 2024 Andrew Hancox at Open Source Learning <andrewdchancox@googlemail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+define([
+    'jquery',
+], function($) {
 
-$plugin->version   = 2019111821;
-$plugin->requires  = 2018120300;
-$plugin->component = 'assignsubmission_avgblindmarking';
-$plugin->cron      = 0;
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = '1.0 for Moodle 3.8+';
+    "use strict";
+
+    var handler = {
+        refreshurl: '',
+        catchpanelrefresh: function () {
+            window.location.replace(handler.refreshurl);
+        }
+    };
+
+    return {
+        init: function (refreshurl) {
+            handler.refreshurl = refreshurl;
+            $(document).on('reset done-saving-show-next', handler.catchpanelrefresh);
+        }
+    };
+});

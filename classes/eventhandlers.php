@@ -72,7 +72,7 @@ class eventhandlers {
         $grade = $assign->get_user_grade($relateduserid, false);
 
         if ($submission->status == ASSIGN_SUBMISSION_STATUS_SUBMITTED && empty($assignuserflag->workflowstate)) {
-            $assignuserflag->allocatedmarker = self::get_next_marker($relateduserid, $assign) ?? 0;
+            $assignuserflag->allocatedmarker = self::get_next_marker($relateduserid, $assign) ?? $assignuserflag->allocatedmarker;
             $assignuserflag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED;
             $DB->update_record('assign_user_flags', $assignuserflag);
 
