@@ -39,7 +39,9 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
         global $DB;
         $assignuserflag = $DB->get_record('assign_user_flags', ['userid' => $submissionorgrade->userid, 'assignment' => $submissionorgrade->assignment]);
 
-        if ($assignuserflag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW) {
+        if (empty($assignuserflag)) {
+            return '';
+        } else if ($assignuserflag->workflowstate == ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW) {
             $controller = new manageblindgradescontroller($this->assignment);
             return html_writer::link(
                 $controller->getinternallink('manageblindgrades', ['learnerid' => $submissionorgrade->userid]),
