@@ -22,6 +22,7 @@
 
 namespace assignsubmission_avgblindmarking;
 
+use assign;
 use html_writer;
 use moodle_url;
 use table_sql;
@@ -33,14 +34,16 @@ require_once($CFG->dirroot . '/lib/tablelib.php');
 require_once($CFG->dirroot . '/user/profile/lib.php');
 
 class blindgradestable extends table_sql {
-    protected $filterparams;
-    protected $assignment;
+    private $filterparams;
+    private assign $assignment;
+    private bool $blind;
 
     public function __construct(basecontroller $controller, $sortcolumn, $learnerid, $graderid = null) {
         parent::__construct('manageproduct_table');
 
         $this->controller = $controller;
         $this->assignment = $controller->get_assign();
+        $this->blind = $this->assignment->is_blind_marking();
 
         $wheres = ['ag.assignment = :assignmentid'];
         $params = ['assignmentid' => $this->assignment->get_instance()->id];
@@ -80,28 +83,47 @@ class blindgradestable extends table_sql {
         $learnernamesql = \core_user\fields::for_name()->get_sql('lrnr', true, 'lrnr')->selects;
         $gradernamesql = \core_user\fields::for_name()->get_sql('grdr', true, 'grdr')->selects;
 
-        $this->set_sql("ag.id $learnernamesql $gradernamesql, ag.timecreated, ag.grader, bg.userid as learner, ag.grade",
-            '{assign_grades} ag
+        $fields = "ag.id $learnernamesql $gradernamesql, ag.timecreated, ag.grader, bg.userid as learner, ag.grade";
+        $from = '{assign_grades} ag
                     INNER JOIN {assignsubmission_ass_grade} bg on bg.assigngradeid = ag.id
                     INNER JOIN {user} lrnr on lrnr.id = bg.userid
-                    INNER JOIN {user} grdr on grdr.id = ag.grader',
+                    INNER JOIN {user} grdr on grdr.id = ag.grader';
+
+        if ($this->blind) {
+            $from .= ' LEFT JOIN {assign_user_mapping} um
+                             ON bg.userid = um.userid
+                            AND um.assignment = :assignmentidblind ';
+            $params['assignmentidblind'] = (int)$this->assignment->get_instance()->id;
+            $fields .= ', um.id as recordid ';
+        }
+
+
+        $this->set_sql($fields,
+            $from,
             implode(' AND ', $wheres),
             $params
         );
     }
 
     function col_learner($row) {
-        global $COURSE;
+        if ($this->blind) {
+            if (empty($row->recordid)) {
+                $row->recordid = $this->assignment->get_uniqueid_for_user($row->learnerid);
+            }
+            return get_string('hiddenuser', 'assign') . $row->recordid;
+        } else {
+            global $COURSE;
 
-        $user = (object)[];
-        username_load_fields_from_object($user, $row, 'lrnr');
+            $user = (object)[];
+            username_load_fields_from_object($user, $row, 'lrnr');
 
-        $name = fullname($user);
+            $name = fullname($user);
 
-        $profileurl = new moodle_url('/user/view.php',
-            ['id' => $row->learner, 'course' => $COURSE->id]);
+            $profileurl = new moodle_url('/user/view.php',
+                ['id' => $row->learner, 'course' => $COURSE->id]);
 
-        return html_writer::link($profileurl, $name);
+            return html_writer::link($profileurl, $name);
+        }
     }
 
     function col_grader($row) {

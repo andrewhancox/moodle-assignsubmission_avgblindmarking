@@ -22,6 +22,7 @@
 
 namespace assignsubmission_avgblindmarking;
 
+use assign;
 use table_sql;
 
 defined('MOODLE_INTERNAL') || die();
@@ -37,7 +38,6 @@ class managegraderstable extends table_sql {
     public function __construct(managegraderscontroller $controller, $sortcolumn) {
         parent::__construct('managegraderstable_table');
 
-        $this->now = time();
         $this->controller = $controller;
 
         $cols = ['learner', 'grader', 'actions'];
