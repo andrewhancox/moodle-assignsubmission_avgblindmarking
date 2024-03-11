@@ -22,9 +22,28 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2019111822;
-$plugin->requires  = 2018120300;
-$plugin->component = 'assignsubmission_avgblindmarking';
-$plugin->cron      = 0;
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = '1.0 for Moodle 3.8+';
+/**
+ * Stub for upgrade code
+ * @param int $oldversion
+ * @return bool
+ */
+function xmldb_assignsubmission_avgblindmarking_upgrade($oldversion) {
+    global $CFG, $DB;
+    $dbman = $DB->get_manager();
+
+    if ($oldversion < 2019111822) {
+        $table = new xmldb_table('assignsubmission_ass_grade');
+
+        $field = new xmldb_field('attemptnumber', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'userid');
+
+        // Conditionally launch add field commentsformat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Assignment savepoint reached.
+        upgrade_plugin_savepoint(true, 2019111822, 'assignsubmission', 'avgblindmarking');
+    }
+
+    return true;
+}

@@ -83,15 +83,16 @@ class blindgradestable extends table_sql {
         $learnernamesql = \core_user\fields::for_name()->get_sql('lrnr', true, 'lrnr')->selects;
         $gradernamesql = \core_user\fields::for_name()->get_sql('grdr', true, 'grdr')->selects;
 
-        $fields = "ag.id $learnernamesql $gradernamesql, ag.timecreated, ag.grader, bg.userid as learner, ag.grade";
+        $fields = "ag.id $learnernamesql $gradernamesql, ag.timecreated, ag.grader, assg.userid as learner, ag.grade";
         $from = '{assign_grades} ag
-                    INNER JOIN {assignsubmission_ass_grade} bg on bg.assigngradeid = ag.id
-                    INNER JOIN {user} lrnr on lrnr.id = bg.userid
+                    INNER JOIN {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
+                    INNER JOIN {assign_submission} s on s.assignment = ag.assignment AND s.userid = assg.userid AND assg.attemptnumber = s.attemptnumber and s.latest = 1
+                    INNER JOIN {user} lrnr on lrnr.id = assg.userid
                     INNER JOIN {user} grdr on grdr.id = ag.grader';
 
         if ($this->blind) {
             $from .= ' LEFT JOIN {assign_user_mapping} um
-                             ON bg.userid = um.userid
+                             ON assg.userid = um.userid
                             AND um.assignment = :assignmentidblind ';
             $params['assignmentidblind'] = (int)$this->assignment->get_instance()->id;
             $fields .= ', um.id as recordid ';

@@ -97,10 +97,12 @@ class eventhandlers {
                 $assignuserflag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW;
                 $DB->update_record('assign_user_flags', $assignuserflag);
 
-                $gradeinfo = $DB->get_record_sql('select AVG(ag.grade) as avg,  MAX(ag.grade) - MIN(ag.grade) as variance from {assign_grades} ag
-                                        inner join {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
-                                        where ag.assignment = :assignid and assg.userid = :userid',
-                    ['assignid' => $assign->get_instance()->id, 'userid' => $relateduserid]);
+                $gradeinfo = $DB->get_record_sql('SELECT AVG(ag.grade) AS avg,  MAX(ag.grade) - MIN(ag.grade) AS variance
+                                        FROM {assign_grades} ag
+                                        INNER JOIN {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
+                                        INNER JOIN {assign_submission} s on s.assignment = ag.assignment AND s.userid = assg.userid AND assg.attemptnumber = s.attemptnumber and s.latest = 1
+                                        WHERE ag.assignment = :assignid AND assg.userid = :userid AND s.attemptnumber = :attemptnumber',
+                    ['assignid' => $assign->get_instance()->id, 'userid' => $relateduserid, 'attemptnumber' => $submission->attemptnumber]);
 
                 $publishable = true;
 
@@ -131,17 +133,18 @@ class eventhandlers {
     private static function disconnect_latest_grade($learneruserid, $graderuserid, \assign $assign) {
         global $DB;
 
-        $assigngrade = $DB->get_record('assign_grades', ['userid' => $learneruserid, 'assignment' => $assign->get_instance()->id, 'grader' => $graderuserid]);
+        $assignid = $assign->get_instance()->id;
+        $assigngrade = $DB->get_record('assign_grades', ['userid' => $learneruserid, 'assignment' => $assignid, 'grader' => $graderuserid]);
 
         if (empty($assigngrade)) {
             return;
         }
 
-        $assigngrade->userid = -1;
-        $assigngrade->attemptnumber = $DB->get_field('assign_grades', 'max(attemptnumber)', []) + 1;
-        $DB->update_record('assign_grades', $assigngrade);
+        $DB->insert_record('assignsubmission_ass_grade', ['assigngradeid' => $assigngrade->id, 'userid' => $assigngrade->userid, 'attemptnumber' => $assigngrade->attemptnumber]);
 
-        $DB->insert_record('assignsubmission_ass_grade', ['assigngradeid' => $assigngrade->id, 'userid' => $learneruserid]);
+        $assigngrade->userid = -1;
+        $assigngrade->attemptnumber = $DB->get_field('assign_grades', 'min(attemptnumber)', ['assignment' => $assignid]) - 1;
+        $DB->update_record('assign_grades', $assigngrade);
     }
 
     public static function get_next_marker($learneruserid, \assign $assign) {
@@ -167,9 +170,10 @@ class eventhandlers {
     private static function get_assign_grades($assignid, $learneruserid) {
         global $DB;
 
-        return $DB->get_records_sql('select ag.* from {assign_grades} ag
-                                        inner join {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
-                                        where ag.assignment = :assignid and assg.userid = :userid',
+        return $DB->get_records_sql('SELECT ag.* FROM {assign_grades} ag
+                                        INNER JOIN {assignsubmission_ass_grade} assg ON assg.assigngradeid = ag.id
+                                        INNER JOIN {assign_submission} s on s.assignment = ag.assignment AND s.userid = assg.userid AND assg.attemptnumber = s.attemptnumber and s.latest = 1
+                                        WHERE ag.assignment = :assignid AND assg.userid = :userid',
             ['assignid' => $assignid, 'userid' => $learneruserid]);
     }
 }

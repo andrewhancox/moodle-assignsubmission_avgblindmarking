@@ -35,7 +35,7 @@ class importgradersimporter_test extends advanced_testcase {
     // Use the generator helper.
     use mod_assign_test_generator;
 
-    public function test_loaddata() {
+    public function test_get_next_marker() {
         global $DB;
 
         $this->resetAfterTest();
@@ -74,6 +74,13 @@ class importgradersimporter_test extends advanced_testcase {
         $DB->insert_record('assignsubmission_ass_grade', (object)[
             'assigngradeid' => $assigngradeid,
             'userid' => $student->id,
+            'attemptnumber' => 0
+        ]);
+        $DB->insert_record('assign_submission', (object)[
+            'assignment' => $assign->get_instance()->id,
+            'userid' => $student->id,
+            'attemptnumber' => 0,
+            'latest' => 1,
         ]);
         $this->assertEquals($teacher2->id, eventhandlers::get_next_marker($student->id, $assign));
         $this->assertEquals($teacher2->id, eventhandlers::get_next_marker($student2->id, $assign));
