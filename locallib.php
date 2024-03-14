@@ -74,10 +74,11 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
         } else if (in_array($assignuserflag->workflowstate, [ASSIGN_MARKING_WORKFLOW_STATE_NOTMARKED, ASSIGN_MARKING_WORKFLOW_STATE_INMARKING, ASSIGN_MARKING_WORKFLOW_STATE_READYFORREVIEW])) {
             $submittedgrades = $DB->count_records_sql('select count(ag.id)
                                         from {assign_grades} ag
-                                        INNER JOIN {assignsubmission_ass_grade} bg on bg.assigngradeid = ag.id and bg.attemptnumber = ag.attemptnumber
-                                        INNER JOIN {assignsubmission_graderalloc} ga on ag.grader = ga.graderuserid and bg.userid = ga.learneruserid and ga.assignid = ag.assignment
-                                        WHERE bg.userid = :userid AND ag.assignment = :assignmentid AND ag.attemptnumber = :attemptnumber',
-                ['userid' => $submissionorgrade->userid, 'assignmentid' => $submissionorgrade->assignment, 'attemptnumber' => $submissionorgrade->attemptnumber]);
+                                        INNER JOIN {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
+                                        INNER JOIN {assign_submission} s on s.assignment = ag.assignment AND s.userid = assg.userid AND assg.attemptnumber = s.attemptnumber and s.latest = 1
+                                        INNER JOIN {assignsubmission_graderalloc} ga on ag.grader = ga.graderuserid and assg.userid = ga.learneruserid and ga.assignid = ag.assignment
+                                        WHERE assg.userid = :userid AND ag.assignment = :assignmentid',
+                ['userid' => $submissionorgrade->userid, 'assignmentid' => $submissionorgrade->assignment]);
             $requiredgrades = \assignsubmission_avgblindmarking\graderalloc::count_records(['learneruserid' => $submissionorgrade->userid]);
 
             return get_string('requiredvsubmitted', 'assignsubmission_avgblindmarking', (object)['required' => $requiredgrades, 'submitted' => $submittedgrades]);
