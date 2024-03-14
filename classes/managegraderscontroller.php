@@ -76,7 +76,7 @@ class managegraderscontroller extends basecontroller {
         $learners = get_enrolled_users($this->get_assign()->get_context(), 'mod/assign:submit', 0, 'u.*', $sort);
         $learnerlist = [];
         foreach ($learners as $learneroption) {
-            $learnerlist[$learner->id] = fullname($learneroption);
+            $learnerlist[$learneroption->id] = fullname($learneroption);
         }
 
         $currentgraderalloc = [];
