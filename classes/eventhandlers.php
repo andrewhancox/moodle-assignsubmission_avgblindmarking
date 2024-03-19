@@ -151,6 +151,15 @@ class eventhandlers {
             return;
         }
 
+        // Delete old records first to avoid over counting where a grader gets allocated to grade a second time.
+        $oldassignsubmission_ass_grade = $DB->get_records_sql('SELECT assg.*
+                                        FROM {assign_grades} ag
+                                        INNER JOIN {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
+                                        INNER JOIN {assign_submission} s on s.assignment = ag.assignment AND s.userid = assg.userid AND assg.attemptnumber = s.attemptnumber and s.latest = 1
+                                        WHERE ag.assignment = :assignid AND assg.userid = :userid AND ag.grader = :grader',
+            ['assignid' => $assignid, 'userid' => $learneruserid, 'grader' => $graderuserid]);
+        $DB->delete_records_list('assignsubmission_ass_grade', 'id', array_keys($oldassignsubmission_ass_grade));
+
         $DB->insert_record('assignsubmission_ass_grade', ['assigngradeid' => $assigngrade->id, 'userid' => $assigngrade->userid, 'attemptnumber' => $assigngrade->attemptnumber]);
 
         self::$finaldisconnectpending = $assigngrade;
