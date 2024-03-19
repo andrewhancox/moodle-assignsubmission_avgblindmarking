@@ -76,6 +76,7 @@ class eventhandlers_test extends advanced_testcase {
         $data->grade = '50.0';
         $assign->testable_apply_grade_to_user($data, $student->id, 0);
         $assign->testable_process_set_batch_marking_workflow_state($student->id, ASSIGN_MARKING_WORKFLOW_STATE_READYFORREVIEW);
+        eventhandlers::finalisedisconnect();
 
         $assign_user_flags = $DB->get_record('assign_user_flags', ['userid' => $student->id, 'assignment' => $assign->get_instance()->id]);
         $this->assertEquals($teacher2->id, $assign_user_flags->allocatedmarker);
@@ -86,6 +87,7 @@ class eventhandlers_test extends advanced_testcase {
         $data->grade = '100.0';
         $assign->testable_apply_grade_to_user($data, $student->id, 0);
         $assign->testable_process_set_batch_marking_workflow_state($student->id, ASSIGN_MARKING_WORKFLOW_STATE_READYFORREVIEW);
+        eventhandlers::finalisedisconnect();
 
         $assign_user_flags = $DB->get_record('assign_user_flags', ['userid' => $student->id, 'assignment' => $assign->get_instance()->id]);
         $this->assertEquals(0, $assign_user_flags->allocatedmarker);

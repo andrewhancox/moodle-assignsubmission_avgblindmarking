@@ -94,6 +94,10 @@ class eventhandlers {
             $finalmarkersubmitting = empty($nextmarker);
 
             if ($finalmarkersubmitting) {
+                // Do this now as we want a new grade to get created.
+                // Otherwise this gets handled by a shutdown function.
+                eventhandlers::finalisedisconnect();
+
                 $grade = $assign->get_user_grade($relateduserid, true);
                 $assignuserflag->allocatedmarker = 0;
                 $assignuserflag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_INREVIEW;
@@ -144,9 +148,30 @@ class eventhandlers {
 
         $DB->insert_record('assignsubmission_ass_grade', ['assigngradeid' => $assigngrade->id, 'userid' => $assigngrade->userid, 'attemptnumber' => $assigngrade->attemptnumber]);
 
-        $assigngrade->userid = -1;
-        $assigngrade->attemptnumber = $DB->get_field('assign_grades', 'min(attemptnumber)', ['assignment' => $assignid]) - 1;
-        $DB->update_record('assign_grades', $assigngrade);
+        self::$finaldisconnectpending = $assigngrade;
+
+        // VERY nervous about this... In several instances the disconnection gets undone after the event handler that
+        // triggered it happens so we're doing it as a shutdown function.
+        // We cant just create a new grade  as the calling function already has a reference to it that we can't overwrite.
+        // It also, potentially, still needs to make some changes to it.
+        // First properly grim bit of code so far...
+        register_shutdown_function(static function () {
+            eventhandlers::finalisedisconnect();
+        });
+    }
+
+    private static $finaldisconnectpending = null;
+
+    public static function finalisedisconnect() {
+        if (empty(self::$finaldisconnectpending)) {
+            return;
+        }
+        global $DB;
+        $DB->set_field('assign_grades', 'userid', -1, ['id' => self::$finaldisconnectpending->id]);
+        $DB->set_field('assign_grades', 'attemptnumber',
+            $DB->get_field('assign_grades', 'min(attemptnumber)', ['assignment' => self::$finaldisconnectpending->assignment]) - 1, ['id' => self::$finaldisconnectpending->id]
+        );
+        self::$finaldisconnectpending = null;
     }
 
     public static function get_next_marker($learneruserid, \assign $assign) {
