@@ -140,7 +140,12 @@ class eventhandlers {
         global $DB;
 
         $assignid = $assign->get_instance()->id;
-        $assigngrade = $DB->get_record('assign_grades', ['userid' => $learneruserid, 'assignment' => $assignid, 'grader' => $graderuserid]);
+
+        $assigngrade = $DB->get_record_sql('SELECT ag.*
+                                        FROM {assign_grades} ag
+                                        INNER JOIN {assign_submission} s on s.assignment = ag.assignment AND s.userid = ag.userid AND s.attemptnumber = ag.attemptnumber and s.latest = 1
+                                        WHERE ag.assignment = :assignid AND ag.userid = :userid AND ag.grader = :grader',
+            ['assignid' => $assignid, 'userid' => $learneruserid, 'grader' => $graderuserid]);
 
         if (empty($assigngrade)) {
             return;
