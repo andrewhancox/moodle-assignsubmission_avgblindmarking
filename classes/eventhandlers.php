@@ -126,6 +126,46 @@ class eventhandlers {
                 if ($publishable) {
                     $assignuserflag->workflowstate = ASSIGN_MARKING_WORKFLOW_STATE_READYFORRELEASE;
                     $DB->update_record('assign_user_flags', $assignuserflag);
+
+                    // Pull together all feedback files and comments to attach to the new grade.
+                    $blindgrades = $DB->get_records_sql('SELECT ag.*
+                                        FROM {assign_grades} ag
+                                        INNER JOIN {assignsubmission_ass_grade} assg on assg.assigngradeid = ag.id
+                                        INNER JOIN {assign_submission} s on s.assignment = ag.assignment AND s.userid = assg.userid AND assg.attemptnumber = s.attemptnumber and s.latest = 1
+                                        WHERE ag.assignment = :assignid AND assg.userid = :userid AND s.attemptnumber = :attemptnumber',
+                        ['assignid' => $assign->get_instance()->id, 'userid' => $relateduserid, 'attemptnumber' => $submission->attemptnumber]);
+
+                    $fs = get_file_storage();
+                    $assignfeedback_file_count = 0;
+                    $assignfeedback_comments = '';
+                    foreach ($blindgrades as $blindgrade) {
+                        foreach ($fs->get_area_files($assign->get_context()->id, 'assignfeedback_file', 'feedback_files', $blindgrade->id, 'itemid', false) as $file) {
+                            $fs->create_file_from_storedfile(['itemid' => $grade->id], $file);
+                            $file->delete();
+                            $assignfeedback_file_count++;
+                        }
+
+                        foreach ($DB->get_records('assignfeedback_comments', ['grade' => $blindgrade->id]) as $assignfeedback_comment) {
+                            if (!empty($assignfeedback_comment->commenttext)) {
+                                $assignfeedback_comments .= \html_writer::div($assignfeedback_comment->commenttext);
+                            }
+                        }
+
+                        foreach ($fs->get_area_files($assign->get_context()->id, 'assignfeedback_comments', 'feedback', $blindgrade->id, 'itemid', false) as $file) {
+                            $fs->create_file_from_storedfile(['itemid' => $grade->id], $file);
+                            $file->delete();
+                        }
+                    }
+
+                    if (!empty($assignfeedback_comments)) {
+                        $DB->delete_records('assignfeedback_comments', ['grade' => $grade->id]);
+                        $DB->insert_record('assignfeedback_comments', ['assignment' => $assign->get_instance()->id, 'grade' => $grade->id, 'commenttext' => $assignfeedback_comments, 'commentformat' => FORMAT_HTML]);
+                    }
+
+                    if ($assignfeedback_file_count > 0) {
+                        $DB->delete_records('assignfeedback_file', ['grade' => $grade->id]);
+                        $DB->insert_record('assignfeedback_file', ['assignment' => $assign->get_instance()->id, 'grade' => $grade->id, 'numfiles' => $assignfeedback_file_count]);
+                    }
                 }
             } else {
                 $assignuserflag->allocatedmarker = $nextmarker;
