@@ -39,6 +39,7 @@ $string['csvfile'] = 'CSV File';
 $string['creategraderalloc'] = 'Add grader allocation';
 $string['editgraderalloc'] = 'Edit grader allocation';
 $string['editgraderallocusername'] = 'Edit grader allocation for {$a}';
+$string['examplecsvfile'] = 'Example CSV file';
 $string['allocatedgraders'] = 'Allocated graders';
 $string['timecreated'] = 'Time created';
 $string['viewblindgrade'] = 'View blind grade';

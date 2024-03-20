@@ -23,11 +23,23 @@
 namespace assignsubmission_avgblindmarking;
 
 use core_text;
+use html_writer;
 use moodleform;
 
 class importgradersform extends moodleform {
     function definition() {
         $mform =& $this->_form;
+
+        $mform->addElement('html',
+            html_writer::tag('div',
+                html_writer::link(
+                    new \moodle_url('/mod/assign/submission/avgblindmarking/resources/example.csv'),
+                    get_string('examplecsvfile', 'assignsubmission_avgblindmarking'),
+                    ['target' => '_blank', 'download' => 'download']
+                ),
+                array('class' => 'addpage')
+            )
+        );
 
         $mform->addElement('filepicker', 'csvfile', get_string('csvfile', 'assignsubmission_avgblindmarking'), null, ['accepted_types' => ['.csv']]);
         $mform->addRule('csvfile', null, 'required', null, 'client');
