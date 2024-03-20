@@ -172,7 +172,8 @@ class assign_submission_avgblindmarking extends assign_submission_plugin {
      * @return bool - on error the subtype should call set_error and return false.
      */
     public function save_settings(stdClass $formdata): bool {
-        $this->set_config('maxvarianceforautograde', $formdata->assignsubmission_avgblindmarking_maxvarianceforautograde);
+        $maxvariance = $formdata->assignsubmission_avgblindmarking_maxvarianceforautograde ?? 0;
+        $this->set_config('maxvarianceforautograde', $maxvariance);
 
         return true;
     }
