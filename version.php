@@ -22,7 +22,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2019111822;
+$plugin->version   = 2019111823;
 $plugin->requires  = 2018120300;
 $plugin->component = 'assignsubmission_avgblindmarking';
 $plugin->cron      = 0;
