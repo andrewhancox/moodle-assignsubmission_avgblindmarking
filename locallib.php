@@ -30,6 +30,18 @@ require_once($CFG->dirroot . '/comment/lib.php');
 require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
 
 class assign_submission_avgblindmarking extends assign_submission_plugin {
+    public static function is_enabled_for_assign(assign $assign): bool {
+        foreach ($assign->get_submission_plugins() as $plugin) {
+            if (!is_a($plugin, 'assign_submission_avgblindmarking')) {
+                continue;
+            }
+
+            return $plugin->is_enabled();
+        }
+
+        return false;
+    }
+
     public function get_name() {
         return get_string('pluginname', 'assignsubmission_avgblindmarking');
     }

@@ -57,6 +57,9 @@ class eventhandlers {
         $relateduserid = $relateduserid ?? $event->relateduserid;
 
         $assign = $event->get_assign();
+        if (!\assign_submission_avgblindmarking::is_enabled_for_assign($assign)) {
+            return;
+        }
 
         $assignuserflag = $DB->get_record('assign_user_flags', ['userid' => $relateduserid, 'assignment' => $assign->get_instance()->id]);
 

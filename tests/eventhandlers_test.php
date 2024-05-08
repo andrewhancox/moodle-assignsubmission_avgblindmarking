@@ -47,6 +47,7 @@ class eventhandlers_test extends advanced_testcase {
 
         $assign = $this->create_instance($course, [
             'assignsubmission_onlinetext_enabled' => true,
+            'assignsubmission_avgblindmarking_enabled' => true,
             'blindmarking' => 1
         ]);
 
